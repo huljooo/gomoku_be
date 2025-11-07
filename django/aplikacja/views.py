@@ -43,4 +43,4 @@ def get_status(request, game_id):
     except Game.DoesNotExist:
         raise Http404("Game does not exist")
 
-    return Response({"rozpoczyna": game.curret_player})
+    return Response({"current_player": game.curret_player})
