@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes
 from django.http import Http404
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -20,7 +21,7 @@ class AddressViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def new_game(request):
-    game = Game(curret_player=rozpoczynajacy_zawodnik())
+    game = Game(curret_player=rozpoczynajacy_zawodnik(), user=request.user)
     game.set_board(nowy_board())
     game.save()
     return Response({"id": game.pk})
@@ -32,6 +33,8 @@ def get_board(request, game_id):
         game = Game.objects.get(pk=game_id)
     except Game.DoesNotExist:
         raise Http404("Game does not exist")
+    if game.user.id != request.user.id:
+        raise PermissionDenied("To nie twoja gra")
 
     return Response({"board": game.get_board()})
 
@@ -42,5 +45,8 @@ def get_status(request, game_id):
         game = Game.objects.get(pk=game_id)
     except Game.DoesNotExist:
         raise Http404("Game does not exist")
+    if game.user.id != request.user.id:
+        raise PermissionDenied("To nie twoja gra")
+
 
     return Response({"current_player": game.curret_player})
