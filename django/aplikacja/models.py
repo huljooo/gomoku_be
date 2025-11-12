@@ -1,5 +1,6 @@
 from django.db import models
 import json
+from django.contrib.auth.models import User
 
 class Person(models.Model):
     name = models.CharField(max_length=100)
@@ -21,6 +22,7 @@ class Address(models.Model):
 class Game(models.Model):
     board = models.TextField(default = "[]")
     curret_player = models.CharField(max_length = 1, choices = [("o", "gracz o"), ("x", " gracz x")])
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def set_board(self, board_as_list):
         self.board = json.dumps(board_as_list)
