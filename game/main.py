@@ -67,7 +67,6 @@ def cli():
             board = nowy_board()
             continue
 
-
         aktualny_gracz = zmiana_zawodnika(aktualny_gracz)
 
 def policz(lista, element):
@@ -132,7 +131,6 @@ def czy_wygral(aktulany_gracz, board):
                 return True
 
     return False
-
 
 def sprawdz_lewa(x, y, board, zakres = 4):
     sasiedzi = []
