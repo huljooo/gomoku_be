@@ -3,6 +3,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth.models import User
 from aplikacja.models import Game
+from unittest.mock import patch
 
 class GameViewsTest(APITestCase):
     def setUp(self):
@@ -79,3 +80,18 @@ class GameViewsTest(APITestCase):
         url = reverse('get_status', args=[self.game.pk])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class NewGameEndpointTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="test", password="test")
+        self.client.force_authenticate(user=self.user)
+
+    @patch('aplikacja.views.rozpoczynajacy_zawodnik')
+    def test_new_game_mock(self, mock_rozpoczynajcya_zawaodnik):
+        mock_rozpoczynajcya_zawaodnik.return_value = "x"
+        url = reverse('new_game')
+        response = self.client.post(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_rozpoczynajcya_zawaodnik.assert_called()
+        game = Game.objects.get(pk=response.data["id"])
+        self.assertEqual(game.curret_player, mock_rozpoczynajcya_zawaodnik.return_value)
