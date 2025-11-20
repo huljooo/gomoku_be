@@ -26,6 +26,7 @@ def new_game(request):
     game.save()
     return Response({"id": game.pk})
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_board(request, game_id):
