@@ -31,7 +31,6 @@ class GameViewsTest(APITestCase):
         self.assertIn('current_player', response.text)
         self.assertEqual(response.data['current_player'], "o")
 
-
 #       --SAD--
 
     def test_new_game_sad_bad_request_method(self):
