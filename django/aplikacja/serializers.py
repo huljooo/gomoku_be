@@ -12,3 +12,8 @@ class PersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Person
         fields = ['id', 'name', 'surname', 'age', 'hobby', 'addresses']
+
+
+class CoordinateSerializer(serializers.Serializer):
+    x = serializers.IntegerField(min_value=0, max_value=14)
+    y = serializers.IntegerField(min_value=0, max_value=14)
