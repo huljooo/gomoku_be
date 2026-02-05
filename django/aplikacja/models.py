@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 import json
 from django.contrib.auth.models import User
@@ -22,14 +21,12 @@ class Address(models.Model):
 
 class Game(models.Model):
     board = models.TextField(default = "[]")
-    curret_player = models.CharField(max_length = 1, choices = [("o", "gracz o"), ("x", " gracz x")])
+    current_player = models.CharField(max_length = 1, choices = [("o", "player o"), ("x", "player x")])
     host_player = models.ForeignKey(User, on_delete=models.CASCADE, related_name="hosted_games")
     guest_player = models.ForeignKey(User, on_delete=models.CASCADE, related_name="guest_games", null=True, blank=True)
-    host_player_symbol = models.CharField(max_length=1, choices=[("o", "gracz o"), ("x", " gracz x")])
-
-    def clean(self):
-        if self.host_player == self.guest_player:
-            raise ValidationError("Host i Guest muszą być różnymi użytkownikami")
+    host_player_symbol = models.CharField(max_length=1, choices=[("o", "player o"), ("x", "player x")])
+    winner = models.CharField(max_length=1, choices=[("o", "player o"), ("x", "player x")])
+    is_done = models.BooleanField(default=False)
 
     def set_board(self, board_as_list):
         self.board = json.dumps(board_as_list)

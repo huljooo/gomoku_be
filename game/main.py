@@ -222,14 +222,7 @@ def sprawdz_prawo_dol(x, y, board, zakres = 4):
     return sasiedzi
 
 if __name__ == "__main__":
-    # wynik = policz([1,1,1,1,1], 1)
-    # print(wynik)
     cli()
-    # x = 8
-    # y = 4
-    # matrix[x][y] = "  #"
-    # display(tablica=matrix)
-    # print(sprawdz_lewa(x,y))
 
 
 
