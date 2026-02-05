@@ -35,6 +35,42 @@ class GameViewsTest(APITestCase):
         self.assertIn('current_player', response.text)
         self.assertEqual(response.data['current_player'], "o")
 
+    def test_get_status_happy_game_is_not_done(self):
+        url = reverse('get_status', args=[self.game.pk])
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('is_done', response.text)
+        self.assertEqual(response.data['is_done'], False)
+
+    def test_get_status_happy_game_is_done(self):
+        url = reverse('get_status', args=[self.game.pk])
+        self.game.is_done = True
+        self.game.save()
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('is_done', response.text)
+        self.assertEqual(response.data['is_done'], True)
+
+    def test_get_status_happy_winner(self):
+        guest = User.objects.create_user(username="test2", password="test2" )
+        self.game.guest_player = guest
+        self.game.is_done = True
+        self.game.winner = self.game.host_player_symbol
+        self.game.save()
+        url = reverse('get_status', args=[self.game.pk])
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('winner_user', response.text)
+        self.assertEqual(response.data['winner_user'], self.game.host_player.username)
+        self.game.winner = "o" if self.game.host_player_symbol != "o" else "x"
+        self.game.save()
+        url = reverse('get_status', args=[self.game.pk])
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('winner_user', response.text)
+        self.assertEqual(response.data['winner_user'], self.game.guest_player.username)
+
+
     def test_join_game_happy(self):
         guest = User.objects.create_user(username="test2", password="test2" )
         self.client.force_authenticate(user=guest)
@@ -53,7 +89,7 @@ class GameViewsTest(APITestCase):
         coords = {"x": 0, "y": 0}
         response = self.client.post(url, coords, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {"message": "You've made your move."})
+        self.assertEqual(response.data["message"], "You've made your move.")
         self.game.refresh_from_db()
         self.assertEqual(self.game.get_board()[0][0], "o")
         self.assertEqual(self.game.current_player, "x")
@@ -72,6 +108,26 @@ class GameViewsTest(APITestCase):
         self.game.refresh_from_db()
         self.assertEqual(self.game.get_board()[0][0], "x")
         self.assertEqual(self.game.current_player, "o")
+
+    @patch('aplikacja.views.czy_wygral')
+    def test_make_move_happy_new_winner(self, mock_czy_wygral):
+        mock_czy_wygral.return_value = True
+        self.game.host_player_symbol = "o"
+        self.game.current_player = "o"
+        self.game.save()
+        url = reverse('make_move', args=[self.game.pk])
+        coords = {"x": 0, "y": 0}
+        response = self.client.post(url, coords, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "You've made your move.")
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.get_board()[0][0], "o")
+        self.assertEqual(self.game.current_player, "x")
+        self.assertIn('winner_user', response.text)
+        self.assertEqual(response.data['winner_user'], self.game.host_player.username)
+        self.assertIn('is_done', response.text)
+        self.assertEqual(response.data['is_done'], True)
+
 
     #       --SAD--
 

@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 import json
 from django.contrib.auth.models import User
@@ -26,6 +25,8 @@ class Game(models.Model):
     host_player = models.ForeignKey(User, on_delete=models.CASCADE, related_name="hosted_games")
     guest_player = models.ForeignKey(User, on_delete=models.CASCADE, related_name="guest_games", null=True, blank=True)
     host_player_symbol = models.CharField(max_length=1, choices=[("o", "player o"), ("x", "player x")])
+    winner = models.CharField(max_length=1, choices=[("o", "player o"), ("x", "player x")])
+    is_done = models.BooleanField(default=False)
 
     def set_board(self, board_as_list):
         self.board = json.dumps(board_as_list)

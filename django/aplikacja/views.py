@@ -6,7 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from .models import Person, Address, Game
 from .serializers import PersonSerializer, AddressSerializer, CoordinateSerializer
-from projekt.game.main import rozpoczynajacy_zawodnik, nowy_board
+from projekt.game.main import rozpoczynajacy_zawodnik, nowy_board, czy_wygral
 
 class PersonViewSet(viewsets.ModelViewSet):
     queryset = Person.objects.all()
@@ -48,7 +48,20 @@ def get_status(request, game_id):
     if game.host_player != request.user and request.user != game.guest_player:
         raise PermissionDenied("It's not your game.")
 
-    return Response({"current_player": game.current_player})
+    winner_user = None
+    winner_symbol = None
+
+    if game.is_done and game.winner:
+        winner_symbol = game.winner
+        if winner_symbol == game.host_player_symbol:
+            winner_user = game.host_player.username
+        else:
+            winner_user = game.guest_player.username
+
+    return Response({"current_player": game.current_player,
+                     "is_done": game.is_done,
+                     "winner_symbol": winner_symbol,
+                     "winner_user": winner_user})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -57,6 +70,9 @@ def join_game(request, game_id):
         game = Game.objects.get(pk=game_id)
     except Game.DoesNotExist:
         raise Http404("Game does not exist.")
+
+    if game.is_done:
+        return Response({"message": "This game is already finished"}, status=status.HTTP_400_BAD_REQUEST)
 
     if game.host_player == request.user:
         return Response({"message": "You are the host of the game."})
@@ -76,6 +92,9 @@ def make_move(request, game_id):
         game = Game.objects.get(pk=game_id)
     except Game.DoesNotExist:
         raise Http404("Game does not exist.")
+
+    if game.is_done:
+        return Response({"message": "This game is already finished"}, status=status.HTTP_400_BAD_REQUEST)
 
     if request.user != game.host_player and request.user != game.guest_player:
         return Response({"message": "You don't have permission to play this game."})
@@ -102,6 +121,12 @@ def make_move(request, game_id):
     board[x][y] = symbol
     game.set_board(board)
     game.current_player = "x" if symbol == "o" else "o"
+    if czy_wygral(symbol, board):
+        game.is_done = True
+        game.winner = symbol
     game.save()
 
-    return Response({"message": "You've made your move."})
+    return Response({"message": "You've made your move.",
+                     "is_done": game.is_done,
+                     "winner_symbol": game.winner,
+                     "winner_user": request.user.username if game.is_done else None})
