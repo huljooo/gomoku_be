@@ -1,6 +1,17 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PersonViewSet, AddressViewSet, new_game, get_board, get_status, join_game, make_move
+from .views import (
+    PersonViewSet,
+    AddressViewSet,
+    new_game,
+    get_board,
+    get_status,
+    join_game,
+    make_move,
+    login,
+    lobby,
+    check_creds, login_user,
+)
 
 router = DefaultRouter()
 router.register(r'persons', PersonViewSet)
@@ -13,4 +24,7 @@ urlpatterns = [
     path('game/status/<int:game_id>', get_status, name='get_status'),
     path('game/join/<int:game_id>', join_game, name='join_game'),
     path('game/make-move/<int:game_id>', make_move, name='make_move'),
+    path('login_user', login_user, name='login_user'),
+    path('lobby', lobby, name='lobby'),
+    path('check-creds', check_creds, name='check-creds'),
 ]

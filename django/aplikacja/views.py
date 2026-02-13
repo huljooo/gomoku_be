@@ -7,6 +7,26 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Person, Address, Game
 from .serializers import PersonSerializer, AddressSerializer, CoordinateSerializer
 from projekt.game.main import rozpoczynajacy_zawodnik, nowy_board, czy_wygral
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+
+def login_user(request):
+    return render(request, "aplikacja/login_user.html", {'bad_creds':"bad_creds" in request.GET})
+
+def check_creds(request):
+    user = authenticate(username=request.POST['username'], password=request.POST['password'])
+    if user is not None:
+        login(request, user)
+        return redirect("lobby")
+    else:
+        url = reverse('login_user') + "?bad_creds=1"
+        return redirect(url)
+
+@login_required(login_url='login_user')
+def lobby(request):
+      return render(request, "aplikacja/lobby.html", {})
 
 class PersonViewSet(viewsets.ModelViewSet):
     queryset = Person.objects.all()
