@@ -8,9 +8,10 @@ from .views import (
     get_status,
     join_game,
     make_move,
-    login,
     lobby,
-    check_creds, login_user,
+    check_creds,
+    login_user,
+    logout_user,
 )
 
 router = DefaultRouter()
@@ -27,4 +28,6 @@ urlpatterns = [
     path('login_user', login_user, name='login_user'),
     path('lobby', lobby, name='lobby'),
     path('check-creds', check_creds, name='check-creds'),
+    path('logout_user', logout_user, name='logout_user'),
+
 ]

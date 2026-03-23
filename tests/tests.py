@@ -4,14 +4,14 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from aplikacja.models import Game
 from unittest.mock import patch
-import projekt.game.main
+import gomoku_be.game.main
 
 class GameViewsTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="test", password="test")
         self.client.force_authenticate(user=self.user)
         self.game = Game.objects.create(current_player="o", host_player=self.user, host_player_symbol="o")
-        board = projekt.game.main.nowy_board()
+        board = gomoku_be.game.main.nowy_board()
         self.game.set_board(board)
         self.game.save()
 

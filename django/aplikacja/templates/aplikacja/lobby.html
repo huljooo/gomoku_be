@@ -1,12 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Lobby</title>
-</head>
-<body>
-<h1>
-    LOBBY
-</h1>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Lobby{% endblock %}
+
+{% block content %}
+<header class="navbar">
+    <form action="{% url 'logout_user' %}" method="POST" class="m-0">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit" class="btn btn-custom px-4 rounded-3 fw-bold">
+            WYLOGUJ SIĘ
+        </button>
+    </form>
+</header>
+<div class="panel">
+    <div class="left-panel">
+        <h2>DOŁĄCZ DO GRY</h2>
+        {% for x in games %}
+        <ul>
+            <li>{{ x }}</li>
+        </ul>
+        {% endfor %}
+    </div>
+    <div id="board"></div>
+    <div class="host-panel">
+        <h2>STWÓRZ NOWĄ GRĘ</h2>
+        <div class="form-group">
+            <label for="game-name">Nazwa Gry:</label>
+            <input type="text" class="input-castom" id="game-name" name="game-name"
+                   placeholder="Wpisz nazwę gry...">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-custom px-4 rounded-3 fw-bold">STWÓRZ GRĘ</button>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const board = document.getElementById('board');
+        for (let i = 0; i < 255; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.addEventListener('click', () => {
+                if (!cell.hasChildNodes()) {
+                    const stone = document.createElement('div');
+                    stone.classList.add('stone');
+                    cell.appendChild(stone);
+                }
+            });
+            board.appendChild(cell);
+        }
+    });
+</script>
+{% endblock %}
