@@ -33,3 +33,6 @@ class Game(models.Model):
 
     def get_board(self):
         return json.loads(self.board)
+
+    def __str__(self):
+        return f"Game: {self.host_player}, ID: {self.pk}"

@@ -6,14 +6,24 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from .models import Person, Address, Game
 from .serializers import PersonSerializer, AddressSerializer, CoordinateSerializer
-from projekt.game.main import rozpoczynajacy_zawodnik, nowy_board, czy_wygral
+from gomoku_be.game.main import rozpoczynajacy_zawodnik, nowy_board, czy_wygral
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
+
+def logout_user(request):
+    logout(request)
+    return redirect("login_user")
+
+
 def login_user(request):
-    return render(request, "aplikacja/login_user.html", {'bad_creds':"bad_creds" in request.GET})
+    if request.user.is_authenticated:
+        return redirect("lobby")
+    else:
+        return render(request, "aplikacja/login_user.html", {'bad_creds': "bad_creds" in request.GET})
+
 
 def check_creds(request):
     user = authenticate(username=request.POST['username'], password=request.POST['password'])
@@ -24,27 +34,34 @@ def check_creds(request):
         url = reverse('login_user') + "?bad_creds=1"
         return redirect(url)
 
+
 @login_required(login_url='login_user')
 def lobby(request):
-      return render(request, "aplikacja/lobby.html", {})
+    games = Game.objects.filter(is_done=False, guest_player__isnull=True)
+    return render(request, "aplikacja/lobby.html", {'games':games})
+
 
 class PersonViewSet(viewsets.ModelViewSet):
     queryset = Person.objects.all()
     serializer_class = PersonSerializer
     permission_classes = [IsAuthenticated]
 
+
 class AddressViewSet(viewsets.ModelViewSet):
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def new_game(request):
-    game = Game(current_player=rozpoczynajacy_zawodnik(), host_player=request.user, host_player_symbol=rozpoczynajacy_zawodnik())
+    game = Game(current_player=rozpoczynajacy_zawodnik(), host_player=request.user,
+                host_player_symbol=rozpoczynajacy_zawodnik())
     game.set_board(nowy_board())
     game.save()
     return Response({"id": game.pk})
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -57,6 +74,7 @@ def get_board(request, game_id):
         raise PermissionDenied("It's not your game.")
 
     return Response({"board": game.get_board()})
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -83,6 +101,7 @@ def get_status(request, game_id):
                      "winner_symbol": winner_symbol,
                      "winner_user": winner_user})
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def join_game(request, game_id):
@@ -104,6 +123,7 @@ def join_game(request, game_id):
     game.save()
 
     return Response({"game_id": game.pk})
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
